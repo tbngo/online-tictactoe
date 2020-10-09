@@ -236,4 +236,16 @@ public class GameBoard {
     }
     return false;
   }
+  
+  /**
+   * Clears the board
+   */
+  public void clearBoard() {
+    this.boardState = new char[][]{
+      {'\u0000', '\u0000', '\u0000'},
+      {'\u0000', '\u0000', '\u0000'},
+      {'\u0000', '\u0000', '\u0000'},
+    };
+    this.numberOfMoves = 0;
+  }
 }

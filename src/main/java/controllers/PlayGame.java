@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Queue;
 import models.GameBoard;
 import models.Message;
@@ -32,9 +33,13 @@ public class PlayGame {
   
   private static Connection conn = database.createConnection();
   
-  private static String databaseName = "ASE_I3_MOVE";
+  private static String tableName = "ASE_I3_MOVE";
   
-  private static boolean tableCreated = database.createTable(conn, databaseName);
+  private static boolean tableCreated = database.createTable(conn, tableName);
+  
+  private static String playerTableName = "PLAYERS";
+  
+  private static boolean playerTableCreated = database.createTable(conn, playerTableName);
 
   /** Main method of the application.
    * @param args Command line arguments
@@ -47,8 +52,10 @@ public class PlayGame {
     
     // Starts the game and sets the turn to p1 and creates a p1 object for game.
     app.post("/startgame", ctx -> {
-      database.dropTable(conn, databaseName);
-      database.createTable(conn, databaseName);
+      database.dropTable(conn, tableName);
+      database.dropTable(conn, playerTableName);
+      database.createTable(conn, tableName);
+      database.createPlayerTable(conn, playerTableName);
       char type = '\u0000';
       if (ctx.body().contains("X")) {
         type = ctx.body().charAt(ctx.body().indexOf('X'));
@@ -57,6 +64,7 @@ public class PlayGame {
         type = ctx.body().charAt(ctx.body().indexOf('O'));
       }
       p1 = new Player(1, type);
+      database.addPlayerData(conn, playerTableName, p1);
       gameBoard.setTurn(1);
       gameBoard.setP1(p1);
       ctx.result(gson.toJson(gameBoard));
@@ -72,7 +80,18 @@ public class PlayGame {
         int y = Integer.parseInt(ctx.formParam("y"));
         move = new Move(gameBoard.getP(playerId), x, y);
         
+        gameBoard.clearBoard();
+        ArrayList<Move> moves = database.getMoves(conn, tableName, gameBoard);
+        if (moves.size() > 0) {
+          Move currMove;
+          for (int i = 0; i < moves.size(); i++) {
+            currMove = moves.get(i);
+            gameBoard.makeMove(currMove);
+          }
+        }
+        
         if (gameBoard.isValidMove(move)) {
+          database.addMoveData(conn, tableName, move);
           gameBoard.makeMove(move);
           if (gameBoard.checkWinner(move)) {
             gameBoard.setTurn(0);
@@ -108,9 +127,13 @@ public class PlayGame {
     // Function to generate p2 and set types.
     app.get("/joingame", ctx -> {
       ctx.redirect("/tictactoe.html?p=2");
-      
-      char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 
-      p2 = new Player(2, type);
+      ArrayList<Player> playerArr = database.getTypes(conn, playerTableName);
+      if (playerArr.size() != 2) {
+        char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 
+        p2 = new Player(2, type);
+      } else {
+        p2 = playerArr.get(1);
+      }
       
       gameBoard.setP2(p2);
       gameBoard.setGameStart(true);

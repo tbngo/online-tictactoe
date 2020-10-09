@@ -44,7 +44,7 @@ public class DatabaseJDBC {
   }
   
   /**
-   * Creates new table.
+   * Creates new table for moves.
    * @param conn is a Connection Object 
    */
   public boolean createTable(Connection conn, String tableName) {
@@ -66,13 +66,31 @@ public class DatabaseJDBC {
     return true; 
   }
   
+  public boolean createPlayerTable(Connection conn, String tableName) {
+    Statement stmt = null; 
+    
+    try {
+      stmt = conn.createStatement(); 
+      String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " " 
+                   + "(PLAYER_ID INT NOT NULL, " 
+                   + "PLAYER_TYPE TEXT NOT NULL);"; 
+      stmt.executeUpdate(sql);
+      stmt.close(); 
+    } catch (Exception e) {
+      System.out.println(e.getClass().getName() + ":" + e.getMessage());
+      return false; 
+    }
+    System.out.println("Table created successfully"); 
+    return true; 
+  }
+  
   /**
    * Adds a successful move to the specified table.
    * @param conn is a Connection object
    * @param move is a Move object containing data
    * @return Boolean that indicates whether or not the move was added
    */
-  public boolean addMoveData(Connection conn, Move move) {
+  public boolean addMoveData(Connection conn, String tableName, Move move) {
     Statement stmt = null; 
     
     try {
@@ -80,7 +98,7 @@ public class DatabaseJDBC {
       System.out.println("Opened database successfully.");
       
       stmt = conn.createStatement(); 
-      String sql = "INSERT INTO ASE_I3_MOVES(PLAYER_ID, MOVE_X, MOVE_Y) "
+      String sql = "INSERT INTO " + tableName + " (PLAYER_ID, MOVE_X, MOVE_Y) "
                    + "VALUES (" + move.getPlayer().getId() + ", " 
                    + move.getMoveX() + ", " 
                    + move.getMoveY() + " );";
@@ -94,10 +112,35 @@ public class DatabaseJDBC {
     }
     
     System.out.println("Move successfully added"); 
-    return true; 
+    return true;
   }
   
-
+  public boolean addPlayerData(Connection conn, String tableName, Player player) {
+    Statement stmt = null; 
+    
+    try {
+      conn.setAutoCommit(false);
+      System.out.println("Opened database successfully.");
+      
+      stmt = conn.createStatement(); 
+      System.out.println("HERE");
+      String sql = "INSERT INTO " + tableName + " (PLAYER_ID, PLAYER_TYPE) "
+                   + "VALUES (" + player.getId() + ", "  
+                   + player.getType() + " );";
+      System.out.println("HERE2");
+      stmt.executeUpdate(sql); 
+      System.out.println("HERE3");
+      stmt.close(); 
+      conn.commit(); 
+      
+    } catch (Exception e) {
+      System.out.println(e.getClass().getName() + ":" + e.getMessage()); 
+      return false; 
+    }
+    
+    System.out.println("Player successfully added"); 
+    return true;
+  }
   
   /**
    * Removes the specified table from the database. 
@@ -123,7 +166,7 @@ public class DatabaseJDBC {
   /**
    * Gets all entries in database.
    * @param conn represents a connection
-   * @param tableName represents the table to get entries frmo
+   * @param tableName represents the table to get entries from
    * @return
    */
   public ArrayList<Move> getMoves(Connection conn, String tableName, GameBoard gameBoard) {
@@ -149,7 +192,6 @@ public class DatabaseJDBC {
       }
       rs.close();
       stmt.close();
-      conn.close();
       return movesArray;
     } catch (Exception e) {
       System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -157,6 +199,48 @@ public class DatabaseJDBC {
     }
     System.out.println("Operation done successfully");
     return movesArray;
+  }
+  
+  /**
+   * Gets all entries in database.
+   * @param conn represents a connection
+   * @param tableName represents the table to get entries frmo
+   * @return
+   */
+  public ArrayList<Player> getTypes(Connection conn, String tableName) {
+    Statement stmt = null;
+
+    Player p1;
+    Player p2;
+    ArrayList<Player> playersArray = new ArrayList<Player>();
+    
+    try {
+      conn.setAutoCommit(false);
+      System.out.println("Opened database successfully");
+      
+      stmt = conn.createStatement();
+      ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + ";");
+      
+      while (rs.next()) {
+        int id = rs.getInt("PLAYER_ID");
+        String type = rs.getString("PLAYER_TYPE");
+        if (id == 1) {
+          p1 = new Player(id, type.charAt(0));
+          playersArray.add(p1);
+        } else if (id == 2) {
+          p2 = new Player(id, type.charAt(0));
+          playersArray.add(p2);
+        }
+      }
+      rs.close();
+      stmt.close();
+      return playersArray;
+    } catch (Exception e) {
+      System.err.println(e.getClass().getName() + ": " + e.getMessage());
+      System.exit(0);
+    }
+    System.out.println("Operation done successfully");
+    return playersArray;
   }
 
 }
