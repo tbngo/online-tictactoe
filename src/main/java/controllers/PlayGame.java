@@ -68,16 +68,6 @@ public class PlayGame {
         database = new Database();
       }
       gameBoard = database.getBoard(tableName);
-            
-      if (gameBoard == null) {
-        ctx.result(gson.toJson(new Message(false, 102, "Wait... 1")));
-        return;
-      }
-      
-      if (gameBoard.getP2() == null) {
-        ctx.result(gson.toJson(new Message(false, 102, "Wait... 2")));
-        return;
-      }
       
       int playerId = Integer.parseInt(ctx.pathParam("playerId"));
       
@@ -130,7 +120,7 @@ public class PlayGame {
         database = new Database();
       }
       gameBoard = database.getBoard(tableName);
-
+      
       ctx.redirect("/tictactoe.html?p=2");
 
       char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 

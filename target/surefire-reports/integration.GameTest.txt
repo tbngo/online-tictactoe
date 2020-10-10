@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: integration.GameTest
 -------------------------------------------------------------------------------
-Tests run: 54, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.043 sec - in integration.GameTest
+Tests run: 53, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.328 sec - in integration.GameTest

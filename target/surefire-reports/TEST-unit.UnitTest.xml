@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="unit.UnitTest" time="0.012" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="unit.UnitTest" time="0.007" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="java.vm.version" value="15+36-1562"/>
     <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk-15.jdk/Contents/Home/lib"/>
-    <property name="maven.multiModuleProjectDirectory" value="/Users/thengo/Desktop/4156-PublicAssignment/hw1"/>
+    <property name="maven.multiModuleProjectDirectory" value="/Users/thengo/Desktop/online-tictactoe"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
     <property name="java.vendor.url" value="https://java.oracle.com/"/>
     <property name="guice.disable.misplaced.annotation.check" value="true"/>
@@ -13,7 +13,7 @@
     <property name="user.country" value="US"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="user.dir" value="/Users/thengo/Desktop/4156-PublicAssignment/hw1"/>
+    <property name="user.dir" value="/Users/thengo/Desktop/online-tictactoe"/>
     <property name="java.vm.compressedOopsMode" value="Zero based"/>
     <property name="java.runtime.version" value="15+36-1562"/>
     <property name="os.arch" value="x86_64"/>
@@ -21,7 +21,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="os.name" value="Mac OS X"/>
-    <property name="classworlds.conf" value="/Users/thengo/eclipse-workspace/.metadata/.plugins/org.eclipse.m2e.launching/launches/m2conf8563820843392961699.tmp"/>
+    <property name="classworlds.conf" value="/Users/thengo/eclipse-workspace/.metadata/.plugins/org.eclipse.m2e.launching/launches/m2conf13405081192887184744.tmp"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
     <property name="java.library.path" value="/Users/thengo/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
     <property name="jdk.debug" value="release"/>
@@ -45,7 +45,7 @@
     <property name="java.vm.info" value="mixed mode, sharing"/>
     <property name="java.version" value="15"/>
     <property name="java.vendor" value="Oracle Corporation"/>
-    <property name="maven.home" value="/Users/thengo/Desktop/4156-PublicAssignment/hw1/EMBEDDED"/>
+    <property name="maven.home" value="/Users/thengo/Desktop/online-tictactoe/EMBEDDED"/>
     <property name="file.separator" value="/"/>
     <property name="java.version.date" value="2020-09-15"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
@@ -54,7 +54,7 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
   </properties>
-  <testcase name="testDraw" classname="unit.UnitTest" time="0.009"/>
+  <testcase name="testDraw" classname="unit.UnitTest" time="0.005"/>
   <testcase name="testValidMove" classname="unit.UnitTest" time="0"/>
   <testcase name="testCheckWinner" classname="unit.UnitTest" time="0"/>
 </testsuite>

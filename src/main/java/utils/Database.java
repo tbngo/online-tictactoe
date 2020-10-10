@@ -10,15 +10,6 @@ import models.Move;
 import models.Player;
 
 public class Database {
-  
-  /**
-   * Main method.
-   * @param args represents args in command line
-   */
-  public static void main(String[] args) {
-
-  }
-  
   /**
    * Creates a new connection.
    * @return Connection object
@@ -188,10 +179,8 @@ public class Database {
         gameBoard.setP1(p1);
         if (p1.getType() == 'X') {
           p2 = new Player(2, 'O');
-        } else if (p1.getType() == 'O') {
-          p2 = new Player(2, 'X');
         } else {
-          System.out.println("Should not be here");
+          p2 = new Player(2, 'X');
         }
         gameBoard.setP2(p2);
       }
@@ -199,9 +188,7 @@ public class Database {
       boolean isWinner = false;
       while (rs.next()) {
         if (rs.getInt("MOVE_X") < 0 || rs.getInt("MOVE_X") > 2) {
-          if (rs.getInt("MOVE_Y") < 0 || rs.getInt("MOVE_Y") > 2) {
-            continue;
-          }
+          continue;
         }
         int id = rs.getInt("PLAYER_ID");
         Player currPlayer = (id == 1) ? p1 : p2;

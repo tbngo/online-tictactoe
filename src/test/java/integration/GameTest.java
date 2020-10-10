@@ -47,20 +47,6 @@ public class GameTest {
     System.out.println("Before Each");
   }
   
-  @Test
-  @Order(1)
-  public void moveBeforeStartGame() {
-    HttpResponse<String> response = Unirest.post("http://localhost:8080/board").asString();
-    JSONObject jsonObject = new JSONObject((String) response.getBody()); 
-    
-    response = Unirest.post("http://localhost:8080/move/1").body("x=0&y=0").asString();
-    
-    response = Unirest.post("http://localhost:8080/board").asString();
-    JSONObject jsonObject2 = new JSONObject((String) response.getBody());
-    
-    assertEquals(jsonObject, jsonObject2);
-  }
-  
   /**
   * This is a test case to evaluate the newgame endpoint.
   */

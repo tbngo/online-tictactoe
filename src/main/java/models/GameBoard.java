@@ -173,6 +173,8 @@ public class GameBoard {
       return false;
     } else if (this.isDraw != false) {
       return false;
+    } else if (this.gameStarted == false) {
+      return false;
     } else {
       return true;
     }
