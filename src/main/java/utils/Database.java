@@ -185,7 +185,6 @@ public class Database {
         gameBoard.setP2(p2);
       }
       
-      boolean isWinner = false;
       while (rs.next()) {
         if (rs.getInt("MOVE_X") < 0 || rs.getInt("MOVE_X") > 2) {
           continue;
@@ -194,11 +193,7 @@ public class Database {
         Player currPlayer = (id == 1) ? p1 : p2;
         Move move = new Move(currPlayer, rs.getInt("MOVE_X"), rs.getInt("MOVE_Y"));
         gameBoard.makeMove(move);
-        isWinner = gameBoard.checkWinner(move);
-      }
-      if (isWinner) {
-        conn.close();
-        stmt.close();
+        gameBoard.checkWinner(move);
       }
       
     } catch (Exception e) {

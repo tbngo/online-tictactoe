@@ -64,9 +64,6 @@ public class PlayGame {
      * populates gameBoard with the specified move. Also processes errors and winner.
      */
     app.post("/move/:playerId", ctx -> {
-      if (database == null) {
-        database = new Database();
-      }
       gameBoard = database.getBoard(tableName);
       
       int playerId = Integer.parseInt(ctx.pathParam("playerId"));
@@ -105,9 +102,6 @@ public class PlayGame {
     // Function to start a new game. Resets board in case of previous game.
     app.get("/newgame", ctx -> {
       ctx.redirect("/tictactoe.html");
-      if (database == null) {
-        database = new Database();
-      }
       
       gameBoard = new GameBoard();
       String json = gson.toJson(gameBoard);
@@ -116,9 +110,6 @@ public class PlayGame {
     
     // Function to generate p2 and set types.
     app.get("/joingame", ctx -> {
-      if (database == null) {
-        database = new Database();
-      }
       gameBoard = database.getBoard(tableName);
       
       ctx.redirect("/tictactoe.html?p=2");
