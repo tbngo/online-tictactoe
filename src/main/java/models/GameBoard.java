@@ -26,7 +26,7 @@ public class GameBoard {
   public GameBoard() {
     this.gameStarted = false;
     
-    this.turn = 0;
+    this.turn = 1;
 
     this.boardState = new char[][]{
       {'\u0000', '\u0000', '\u0000'},
@@ -35,6 +35,7 @@ public class GameBoard {
     };
     this.winner = 0;
     this.isDraw = false;
+    this.numberOfMoves = 0;
   }
   
   /**
@@ -188,6 +189,7 @@ public class GameBoard {
     if (gameStarted) {
       boardState[move.getMoveX()][move.getMoveY()] = move.getPlayer().getType();
       this.numberOfMoves++;
+      this.swapTurns();
     }
   }
   

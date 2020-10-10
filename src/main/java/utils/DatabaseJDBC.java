@@ -52,28 +52,11 @@ public class DatabaseJDBC {
     
     try {
       stmt = conn.createStatement(); 
-      String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " " 
-                   + "(PLAYER_ID INT NOT NULL, " 
-                   + "MOVE_X INT NOT NULL, "
-                   + "MOVE_Y INT NOT NULL);"; 
-      stmt.executeUpdate(sql);
-      stmt.close(); 
-    } catch (Exception e) {
-      System.out.println(e.getClass().getName() + ":" + e.getMessage());
-      return false; 
-    }
-    System.out.println("Table created successfully"); 
-    return true; 
-  }
-  
-  public boolean createPlayerTable(Connection conn, String tableName) {
-    Statement stmt = null; 
-    
-    try {
-      stmt = conn.createStatement(); 
-      String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " " 
-                   + "(PLAYER_ID INT NOT NULL, " 
-                   + "PLAYER_TYPE TEXT NOT NULL);"; 
+      String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " "
+          + "(PLAYER_ID INT NOT NULL,"
+          + " TYPE CHAR(1) NOT NULL,"
+          + " MOVE_X INT NOT NULL,"
+          + " MOVE_Y INT NOT NULL)";
       stmt.executeUpdate(sql);
       stmt.close(); 
     } catch (Exception e) {
@@ -98,10 +81,12 @@ public class DatabaseJDBC {
       System.out.println("Opened database successfully.");
       
       stmt = conn.createStatement(); 
-      String sql = "INSERT INTO " + tableName + " (PLAYER_ID, MOVE_X, MOVE_Y) "
-                   + "VALUES (" + move.getPlayer().getId() + ", " 
-                   + move.getMoveX() + ", " 
-                   + move.getMoveY() + " );";
+      String sql = "INSERT INTO ASE_I3_MOVE (PLAYER_ID, TYPE, MOVE_X, MOVE_Y) "
+          + "VALUES (" 
+          + move.getPlayer().getId() 
+          + ", \'" + Character.toString(move.getPlayer().getType()) + "\', " 
+          + move.getMoveX() + ", " + move.getMoveY() 
+          + " );";
       stmt.executeUpdate(sql); 
       stmt.close(); 
       conn.commit(); 
@@ -112,33 +97,6 @@ public class DatabaseJDBC {
     }
     
     System.out.println("Move successfully added"); 
-    return true;
-  }
-  
-  public boolean addPlayerData(Connection conn, String tableName, Player player) {
-    Statement stmt = null; 
-    
-    try {
-      conn.setAutoCommit(false);
-      System.out.println("Opened database successfully.");
-      
-      stmt = conn.createStatement(); 
-      System.out.println("HERE");
-      String sql = "INSERT INTO " + tableName + " (PLAYER_ID, PLAYER_TYPE) "
-                   + "VALUES (" + player.getId() + ", "  
-                   + player.getType() + " );";
-      System.out.println("HERE2");
-      stmt.executeUpdate(sql); 
-      System.out.println("HERE3");
-      stmt.close(); 
-      conn.commit(); 
-      
-    } catch (Exception e) {
-      System.out.println(e.getClass().getName() + ":" + e.getMessage()); 
-      return false; 
-    }
-    
-    System.out.println("Player successfully added"); 
     return true;
   }
   
@@ -221,7 +179,7 @@ public class DatabaseJDBC {
       stmt = conn.createStatement();
       ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + ";");
       
-      while (rs.next()) {
+      while (rs.next() && playersArray.size() != 2) {
         int id = rs.getInt("PLAYER_ID");
         String type = rs.getString("PLAYER_TYPE");
         if (id == 1) {
@@ -242,5 +200,59 @@ public class DatabaseJDBC {
     System.out.println("Operation done successfully");
     return playersArray;
   }
+  
+  /**
+   * Construct a game board using database
+   */
+  public GameBoard getBoard(Connection conn, String tableName) {
+    Statement stmt = null;
+    
+    GameBoard gameBoard = null;
+    Player p1 = null;
+    Player p2 = null;
+    
+    try {
+      conn.setAutoCommit(false);
+      stmt = conn.createStatement();
+      
+      ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
+      
+      gameBoard = new GameBoard();
+      
+      if (rs.next()) {
+        gameBoard.setGameStart(true);
+        int id = rs.getInt("PLAYER_ID");
+        char type = rs.getString("TYPE").charAt(0);
+        p1 = new Player(id, type);
+        gameBoard.setP1(p1);
+        if (p1.getType() == 'X') {
+          p2 = new Player(2, 'O');
+        } else if (p1.getType() == 'O') {
+          p2 = new Player(2, 'X');
+        } else {
+          System.out.println("Should not be here");
+        }
+        gameBoard.setP2(p2);
+      }
+      
+      while (rs.next()) {
+        if (rs.getInt("MOVE_X") < 0 || rs.getInt("MOVE_X") > 2) {
+          if (rs.getInt("MOVE_Y") < 0 || rs.getInt("MOVE_Y") > 2) {
+            continue;
+          }
+        }
+        int id = rs.getInt("PLAYER_ID");
+        Player currPlayer = (id == 1) ? p1 : p2;
+        Move move = new Move(currPlayer, rs.getInt("MOVE_X"), rs.getInt("MOVE_Y"));
+        gameBoard.makeMove(move);
+      }
+      
+    } catch (Exception e) {
+      System.err.println(e.getClass().getName() + ": " + e.getMessage());
+    }
+    
+    return gameBoard;
+  }
+
 
 }

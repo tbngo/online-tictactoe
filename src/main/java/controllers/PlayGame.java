@@ -37,10 +37,6 @@ public class PlayGame {
   
   private static boolean tableCreated = database.createTable(conn, tableName);
   
-  private static String playerTableName = "PLAYERS";
-  
-  private static boolean playerTableCreated = database.createTable(conn, playerTableName);
-
   /** Main method of the application.
    * @param args Command line arguments
    */
@@ -53,9 +49,7 @@ public class PlayGame {
     // Starts the game and sets the turn to p1 and creates a p1 object for game.
     app.post("/startgame", ctx -> {
       database.dropTable(conn, tableName);
-      database.dropTable(conn, playerTableName);
       database.createTable(conn, tableName);
-      database.createPlayerTable(conn, playerTableName);
       char type = '\u0000';
       if (ctx.body().contains("X")) {
         type = ctx.body().charAt(ctx.body().indexOf('X'));
@@ -64,7 +58,7 @@ public class PlayGame {
         type = ctx.body().charAt(ctx.body().indexOf('O'));
       }
       p1 = new Player(1, type);
-      database.addPlayerData(conn, playerTableName, p1);
+      database.addMoveData(conn, tableName, new Move(p1, -2, -2)); // fake data to add player to db
       gameBoard.setTurn(1);
       gameBoard.setP1(p1);
       ctx.result(gson.toJson(gameBoard));
@@ -74,44 +68,50 @@ public class PlayGame {
      * populates gameBoard with the specified move. Also processes errors and winner.
      */
     app.post("/move/:playerId", ctx -> {
-      if (gameBoard.checkPlayerNull()) {
-        int playerId = Integer.parseInt(ctx.pathParam("playerId"));
-        int x = Integer.parseInt(ctx.formParam("x"));
-        int y = Integer.parseInt(ctx.formParam("y"));
-        move = new Move(gameBoard.getP(playerId), x, y);
-        
-        gameBoard.clearBoard();
-        ArrayList<Move> moves = database.getMoves(conn, tableName, gameBoard);
-        if (moves.size() > 0) {
-          Move currMove;
-          for (int i = 0; i < moves.size(); i++) {
-            currMove = moves.get(i);
-            gameBoard.makeMove(currMove);
-          }
+      if (database == null) {
+        database = new DatabaseJDBC();
+      }
+      gameBoard = database.getBoard(conn, tableName);
+      
+      if (gameBoard == null) {
+        ctx.result(gson.toJson(new Message(false, 102, "Wait... 1")));
+        return;
+      }
+      
+      if (gameBoard.getP2() == null) {
+        ctx.result(gson.toJson(new Message(false, 102, "Wait... 2")));
+        return;
+      }
+      
+      int playerId = Integer.parseInt(ctx.pathParam("playerId"));
+      
+      if (gameBoard.getTurn() != playerId) {
+        ctx.result(gson.toJson(new Message(false, 102, "Wait... 3")));
+        return;
+      }
+    
+      int x = Integer.parseInt(ctx.formParam("x"));
+      int y = Integer.parseInt(ctx.formParam("y"));
+      move = new Move(gameBoard.getP(playerId), x, y);
+      
+      //gameBoard.clearBoard();
+      
+      if (gameBoard.isValidMove(move)) {
+        database.addMoveData(conn, tableName, move);
+        gameBoard.makeMove(move);
+        if (gameBoard.checkWinner(move)) {
+          gameBoard.setTurn(0);
         }
-        
-        if (gameBoard.isValidMove(move)) {
-          database.addMoveData(conn, tableName, move);
-          gameBoard.makeMove(move);
-          if (gameBoard.checkWinner(move)) {
-            gameBoard.setTurn(0);
-          }
-          gameBoard.swapTurns();
-          String json = gson.toJson(gameBoard);
-          sendGameBoardToAllPlayers(json);
-          Message message = new Message(true, 100, "");
-          json = gson.toJson(message);
-          ctx.result(json);
-        } else {
-          Message message = new Message(false, 101, "Bad Move");
-          String json = gson.toJson(gameBoard);
-          sendGameBoardToAllPlayers(json);
-          json = gson.toJson(message);
-          ctx.result(json);
-        }
+        String json = gson.toJson(gameBoard);
+        sendGameBoardToAllPlayers(json);
+        Message message = new Message(true, 100, "");
+        json = gson.toJson(message);
+        ctx.result(json);
       } else {
-        Message message = new Message(false, 102, "Wait for both players");
-        String json = gson.toJson(message);
+        Message message = new Message(false, 101, "Bad Move");
+        String json = gson.toJson(gameBoard);
+        sendGameBoardToAllPlayers(json);
+        json = gson.toJson(message);
         ctx.result(json);
       }
     });
@@ -119,6 +119,10 @@ public class PlayGame {
     // Function to start a new game. Resets board in case of previous game.
     app.get("/newgame", ctx -> {
       ctx.redirect("/tictactoe.html");
+      if (database == null) {
+        database = new DatabaseJDBC();
+      }
+      
       gameBoard = new GameBoard();
       String json = gson.toJson(gameBoard);
       sendGameBoardToAllPlayers(json);
@@ -126,15 +130,17 @@ public class PlayGame {
     
     // Function to generate p2 and set types.
     app.get("/joingame", ctx -> {
-      ctx.redirect("/tictactoe.html?p=2");
-      ArrayList<Player> playerArr = database.getTypes(conn, playerTableName);
-      if (playerArr.size() != 2) {
-        char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 
-        p2 = new Player(2, type);
-      } else {
-        p2 = playerArr.get(1);
+      if (database == null) {
+        database = new DatabaseJDBC();
       }
-      
+      gameBoard = database.getBoard(conn, tableName);
+
+      ctx.redirect("/tictactoe.html?p=2");
+
+      char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 
+      p2 = new Player(2, type);
+      database.addMoveData(conn, tableName, new Move(p2, -2, -2)); // fake data to add player to db
+
       gameBoard.setP2(p2);
       gameBoard.setGameStart(true);
       
