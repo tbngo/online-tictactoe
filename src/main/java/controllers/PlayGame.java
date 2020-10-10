@@ -41,6 +41,8 @@ public class PlayGame {
    * @param args Command line arguments
    */
   public static void main(final String[] args) {
+    
+    gameBoard = database.getBoard(conn, tableName);
 
     app = Javalin.create(config -> {
       config.addStaticFiles("/public");
@@ -72,7 +74,7 @@ public class PlayGame {
         database = new DatabaseJDBC();
       }
       gameBoard = database.getBoard(conn, tableName);
-      
+            
       if (gameBoard == null) {
         ctx.result(gson.toJson(new Message(false, 102, "Wait... 1")));
         return;

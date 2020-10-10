@@ -169,6 +169,10 @@ public class GameBoard {
       return false;
     } else if (boardState[move.getMoveX()][move.getMoveY()] != '\u0000') {
       return false;
+    } else if (this.winner != 0) {
+      return false;
+    } else if (this.isDraw != false) {
+      return false;
     } else {
       return true;
     }

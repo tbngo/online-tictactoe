@@ -245,6 +245,7 @@ public class DatabaseJDBC {
         Player currPlayer = (id == 1) ? p1 : p2;
         Move move = new Move(currPlayer, rs.getInt("MOVE_X"), rs.getInt("MOVE_Y"));
         gameBoard.makeMove(move);
+        gameBoard.checkWinner(move);
       }
       
     } catch (Exception e) {
