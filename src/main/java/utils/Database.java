@@ -2,6 +2,7 @@ package utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import models.GameBoard;
@@ -15,12 +16,7 @@ public class Database {
    * @param args represents args in command line
    */
   public static void main(String[] args) {
-    
-    Database jdbc = new Database();
-    
-    Connection conn = jdbc.createConnection();
-    jdbc.createTable(conn, "ASE_I3_MOVE");
-    
+
   }
   
   /**
@@ -44,14 +40,13 @@ public class Database {
   
   /**
    * Creates new table for moves.
-   * @param conn is a Connection Object 
    */
-  public boolean createTable(Connection conn, String tableName) {
+  public boolean createTable() {
     Statement stmt = null; 
-    
+    Connection conn = this.createConnection();
     try {
       stmt = conn.createStatement(); 
-      String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " "
+      String sql = "CREATE TABLE IF NOT EXISTS ASE_I3_MOVE "
           + "(PLAYER_ID INT NOT NULL,"
           + " TYPE CHAR(1) NOT NULL,"
           + " MOVE_X INT NOT NULL,"
@@ -84,25 +79,21 @@ public class Database {
   
   /**
    * Adds a successful move to the specified table.
-   * @param conn is a Connection object
    * @param move is a Move object containing data
    * @return Boolean that indicates whether or not the move was added
    */
-  public boolean addMoveData(Connection conn, String tableName, Move move) {
-    Statement stmt = null; 
-    
+  public boolean addMoveData(Move move) {
+    PreparedStatement stmt = null; 
+    Connection conn = this.createConnection();
     try {
       conn.setAutoCommit(false);
       System.out.println("Opened database successfully.");
       
-      stmt = conn.createStatement(); 
       String sql = "INSERT INTO ASE_I3_MOVE (PLAYER_ID, TYPE, MOVE_X, MOVE_Y) "
-          + "VALUES (" 
-          + move.getPlayer().getId() 
-          + ", \'" + Character.toString(move.getPlayer().getType()) + "\', " 
-          + move.getMoveX() + ", " + move.getMoveY() 
-          + " );";
-      stmt.executeUpdate(sql); 
+          + String.format("VALUES (%s, \'%s\', %s, %s);", move.getPlayer().getId(), 
+          Character.toString(move.getPlayer().getType()), move.getMoveX(), move.getMoveY());
+      stmt = conn.prepareStatement(sql);
+      stmt.executeUpdate(); 
       stmt.close(); 
       conn.commit(); 
       
@@ -133,12 +124,12 @@ public class Database {
   
   /**
    * Removes the specified table from the database. 
-   * @param conn is a Connection object
    * @param tableName is a String representing the table to be dropped
    * @return Boolean indicating whether or not the sql query was successful
    */
-  public boolean dropTable(Connection conn, String tableName) {
-    Statement stmt = null; 
+  public boolean dropTable(String tableName) {
+    Statement stmt = null;
+    Connection conn = this.createConnection();
     try {
       stmt = conn.createStatement(); 
       String sql =  "DROP Table IF EXISTS " + tableName;  
@@ -170,13 +161,12 @@ public class Database {
   
   /**
    * Construct game board out of database entries.
-   * @param conn represents a connection
    * @param tableName represents the Moves table
    * @return
    */
-  public GameBoard getBoard(Connection conn, String tableName) {
+  public GameBoard getBoard(String tableName) {
     Statement stmt = null;
-    
+    Connection conn = this.createConnection();
     GameBoard gameBoard = null;
     Player p1 = null;
     Player p2 = null;

@@ -3,7 +3,6 @@ package controllers;
 import com.google.gson.Gson;
 import io.javalin.Javalin;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.Queue;
 import models.GameBoard;
 import models.Message;
@@ -29,9 +28,7 @@ public class PlayGame {
   private static Move move;
   
   private static Database database = new Database();
-  
-  private static Connection conn = database.createConnection();
-  
+    
   private static String tableName = "ASE_I3_MOVE";
   
   /** Main method of the application.
@@ -39,7 +36,7 @@ public class PlayGame {
    */
   public static void main(final String[] args) {
     
-    gameBoard = database.getBoard(conn, tableName);
+    gameBoard = database.getBoard(tableName);
 
     app = Javalin.create(config -> {
       config.addStaticFiles("/public");
@@ -47,8 +44,8 @@ public class PlayGame {
     
     // Starts the game and sets the turn to p1 and creates a p1 object for game.
     app.post("/startgame", ctx -> {
-      database.dropTable(conn, tableName);
-      database.createTable(conn, tableName);
+      database.dropTable(tableName);
+      database.createTable();
       char type = '\u0000';
       if (ctx.body().contains("X")) {
         type = ctx.body().charAt(ctx.body().indexOf('X'));
@@ -57,7 +54,7 @@ public class PlayGame {
         type = ctx.body().charAt(ctx.body().indexOf('O'));
       }
       p1 = new Player(1, type);
-      database.addMoveData(conn, tableName, new Move(p1, -2, -2)); // fake data to add player to db
+      database.addMoveData(new Move(p1, -2, -2)); // fake data to add player to db
       gameBoard.setTurn(1);
       gameBoard.setP1(p1);
       ctx.result(gson.toJson(gameBoard));
@@ -70,7 +67,7 @@ public class PlayGame {
       if (database == null) {
         database = new Database();
       }
-      gameBoard = database.getBoard(conn, tableName);
+      gameBoard = database.getBoard(tableName);
             
       if (gameBoard == null) {
         ctx.result(gson.toJson(new Message(false, 102, "Wait... 1")));
@@ -96,7 +93,7 @@ public class PlayGame {
       //gameBoard.clearBoard();
       
       if (gameBoard.isValidMove(move)) {
-        database.addMoveData(conn, tableName, move);
+        database.addMoveData(move);
         gameBoard.makeMove(move);
         if (gameBoard.checkWinner(move)) {
           gameBoard.setTurn(0);
@@ -132,13 +129,13 @@ public class PlayGame {
       if (database == null) {
         database = new Database();
       }
-      gameBoard = database.getBoard(conn, tableName);
+      gameBoard = database.getBoard(tableName);
 
       ctx.redirect("/tictactoe.html?p=2");
 
       char type = gameBoard.getP1().getType() == 'X' ? 'O' : 'X'; 
       p2 = new Player(2, type);
-      database.addMoveData(conn, tableName, new Move(p2, -2, -2)); // fake data to add player to db
+      database.addMoveData(new Move(p2, -2, -2)); // fake data to add player to db
 
       gameBoard.setP2(p2);
       gameBoard.setGameStart(true);
