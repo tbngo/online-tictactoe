@@ -4,12 +4,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import models.GameBoard;
 import models.Move;
 import models.Player;
 
-public class DatabaseJDBC {
+public class Database {
   
   /**
    * Main method.
@@ -17,7 +16,7 @@ public class DatabaseJDBC {
    */
   public static void main(String[] args) {
     
-    DatabaseJDBC jdbc = new DatabaseJDBC();
+    Database jdbc = new Database();
     
     Connection conn = jdbc.createConnection();
     jdbc.createTable(conn, "ASE_I3_MOVE");
@@ -62,6 +61,22 @@ public class DatabaseJDBC {
     } catch (Exception e) {
       System.out.println(e.getClass().getName() + ":" + e.getMessage());
       return false; 
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      
+      try {
+        if (conn != null) {
+          conn.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
     }
     System.out.println("Table created successfully"); 
     return true; 
@@ -94,6 +109,22 @@ public class DatabaseJDBC {
     } catch (Exception e) {
       System.out.println(e.getClass().getName() + ":" + e.getMessage()); 
       return false; 
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      
+      try {
+        if (conn != null) {
+          conn.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
     }
     
     System.out.println("Move successfully added"); 
@@ -116,93 +147,32 @@ public class DatabaseJDBC {
     } catch (Exception e) {
       System.out.println(e.getClass().getName() + ":" + e.getMessage()); 
       return false; 
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      
+      try {
+        if (conn != null) {
+          conn.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
     }
     System.out.println("Table dropped successfully"); 
     return true; 
   }
   
   /**
-   * Gets all entries in database.
+   * Construct game board out of database entries.
    * @param conn represents a connection
-   * @param tableName represents the table to get entries from
+   * @param tableName represents the Moves table
    * @return
-   */
-  public ArrayList<Move> getMoves(Connection conn, String tableName, GameBoard gameBoard) {
-    Statement stmt = null;
-    Move move;
-    Player player;
-    ArrayList<Move> movesArray = new ArrayList<Move>();
-    
-    try {
-      conn.setAutoCommit(false);
-      System.out.println("Opened database successfully");
-      
-      stmt = conn.createStatement();
-      ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + ";");
-      
-      while (rs.next()) {
-        int id = rs.getInt("PLAYER_ID");
-        int moveX = rs.getInt("MOVE_X");
-        int moveY = rs.getInt("MOVE_Y");
-        player = gameBoard.getP(id);
-        move = new Move(player, moveX, moveY);
-        movesArray.add(move);
-      }
-      rs.close();
-      stmt.close();
-      return movesArray;
-    } catch (Exception e) {
-      System.err.println(e.getClass().getName() + ": " + e.getMessage());
-      System.exit(0);
-    }
-    System.out.println("Operation done successfully");
-    return movesArray;
-  }
-  
-  /**
-   * Gets all entries in database.
-   * @param conn represents a connection
-   * @param tableName represents the table to get entries frmo
-   * @return
-   */
-  public ArrayList<Player> getTypes(Connection conn, String tableName) {
-    Statement stmt = null;
-
-    Player p1;
-    Player p2;
-    ArrayList<Player> playersArray = new ArrayList<Player>();
-    
-    try {
-      conn.setAutoCommit(false);
-      System.out.println("Opened database successfully");
-      
-      stmt = conn.createStatement();
-      ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + ";");
-      
-      while (rs.next() && playersArray.size() != 2) {
-        int id = rs.getInt("PLAYER_ID");
-        String type = rs.getString("PLAYER_TYPE");
-        if (id == 1) {
-          p1 = new Player(id, type.charAt(0));
-          playersArray.add(p1);
-        } else if (id == 2) {
-          p2 = new Player(id, type.charAt(0));
-          playersArray.add(p2);
-        }
-      }
-      rs.close();
-      stmt.close();
-      return playersArray;
-    } catch (Exception e) {
-      System.err.println(e.getClass().getName() + ": " + e.getMessage());
-      System.exit(0);
-    }
-    System.out.println("Operation done successfully");
-    return playersArray;
-  }
-  
-  /**
-   * Construct a game board using database
    */
   public GameBoard getBoard(Connection conn, String tableName) {
     Statement stmt = null;
@@ -210,12 +180,13 @@ public class DatabaseJDBC {
     GameBoard gameBoard = null;
     Player p1 = null;
     Player p2 = null;
+    ResultSet rs = null;
     
     try {
       conn.setAutoCommit(false);
       stmt = conn.createStatement();
       
-      ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
+      rs = stmt.executeQuery("SELECT * FROM " + tableName);
       
       gameBoard = new GameBoard();
       
@@ -235,6 +206,7 @@ public class DatabaseJDBC {
         gameBoard.setP2(p2);
       }
       
+      boolean isWinner = false;
       while (rs.next()) {
         if (rs.getInt("MOVE_X") < 0 || rs.getInt("MOVE_X") > 2) {
           if (rs.getInt("MOVE_Y") < 0 || rs.getInt("MOVE_Y") > 2) {
@@ -245,13 +217,40 @@ public class DatabaseJDBC {
         Player currPlayer = (id == 1) ? p1 : p2;
         Move move = new Move(currPlayer, rs.getInt("MOVE_X"), rs.getInt("MOVE_Y"));
         gameBoard.makeMove(move);
-        gameBoard.checkWinner(move);
+        isWinner = gameBoard.checkWinner(move);
+      }
+      if (isWinner) {
+        conn.close();
+        stmt.close();
       }
       
     } catch (Exception e) {
       System.err.println(e.getClass().getName() + ": " + e.getMessage());
-    }
-    
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      
+      try {
+        if (conn != null) {
+          conn.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      
+      try {
+        if (rs != null) {
+          rs.close();
+        } 
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+    }  
     return gameBoard;
   }
 

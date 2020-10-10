@@ -4,14 +4,13 @@ import com.google.gson.Gson;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Queue;
 import models.GameBoard;
 import models.Message;
 import models.Move;
 import models.Player;
 import org.eclipse.jetty.websocket.api.Session;
-import utils.DatabaseJDBC;
+import utils.Database;
 
 public class PlayGame {
 
@@ -29,13 +28,11 @@ public class PlayGame {
     
   private static Move move;
   
-  private static DatabaseJDBC database = new DatabaseJDBC();
+  private static Database database = new Database();
   
   private static Connection conn = database.createConnection();
   
   private static String tableName = "ASE_I3_MOVE";
-  
-  private static boolean tableCreated = database.createTable(conn, tableName);
   
   /** Main method of the application.
    * @param args Command line arguments
@@ -71,7 +68,7 @@ public class PlayGame {
      */
     app.post("/move/:playerId", ctx -> {
       if (database == null) {
-        database = new DatabaseJDBC();
+        database = new Database();
       }
       gameBoard = database.getBoard(conn, tableName);
             
@@ -122,7 +119,7 @@ public class PlayGame {
     app.get("/newgame", ctx -> {
       ctx.redirect("/tictactoe.html");
       if (database == null) {
-        database = new DatabaseJDBC();
+        database = new Database();
       }
       
       gameBoard = new GameBoard();
@@ -133,7 +130,7 @@ public class PlayGame {
     // Function to generate p2 and set types.
     app.get("/joingame", ctx -> {
       if (database == null) {
-        database = new DatabaseJDBC();
+        database = new Database();
       }
       gameBoard = database.getBoard(conn, tableName);
 

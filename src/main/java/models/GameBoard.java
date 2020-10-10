@@ -244,7 +244,7 @@ public class GameBoard {
   }
   
   /**
-   * Clears the board
+   * Clears the board.
    */
   public void clearBoard() {
     this.boardState = new char[][]{
